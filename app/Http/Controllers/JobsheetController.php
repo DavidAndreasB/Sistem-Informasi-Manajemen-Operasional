@@ -6,6 +6,7 @@ use App\Models\JobSheet;
 use App\Models\Spk;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Models\SpkItem;
 
 class JobsheetController extends Controller
 {
@@ -73,5 +74,39 @@ class JobsheetController extends Controller
         }
         
         return back()->with('error', 'Akses ditolak.');
+    }
+
+    /**
+     * Operator menandai item selesai dikerjakan
+     */
+    public function completeItem($id)
+    {
+        $item = SpkItem::findOrFail($id);
+        
+        // Validasi: Hanya bisa jika status masih 'Proses'
+        if($item->status_pengerjaan == 'Selesai') {
+             return back()->with('error', 'Item ini sudah ditandai selesai sebelumnya.');
+        }
+
+        // Update status jadi Selesai (Siap QC)
+        $item->update(['status_pengerjaan' => 'Selesai']);
+
+        return back()->with('success', 'Item berhasil ditandai selesai. Menunggu pemeriksaan QC.');
+    }
+    
+    /**
+     * (Opsional) Operator membatalkan selesai (jika kepencet)
+     * Hanya bisa jika QC belum memeriksa (Status QC masih Pending)
+     */
+    public function undoCompleteItem($id)
+    {
+        $item = SpkItem::findOrFail($id);
+
+        if($item->status_qc != 'Pending') {
+            return back()->with('error', 'Tidak bisa dibatalkan karena QC sudah memeriksa.');
+        }
+
+        $item->update(['status_pengerjaan' => 'Proses']);
+        return back()->with('success', 'Status item dikembalikan ke proses.');
     }
 }

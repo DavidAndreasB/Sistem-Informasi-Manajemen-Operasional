@@ -10,9 +10,18 @@
         </a>
     </div>
 
-    @if (session('status'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('status') }}
+    @if (session('success'))
+        <div class="alert alert-success border-left-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="alert alert-danger border-left-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -21,42 +30,58 @@
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Daftar Akun Pengguna</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Daftar Akun Sistem</h6>
         </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                    <thead>
+                    <thead class="bg-light">
                         <tr>
-                            <th>#</th>
+                            <th width="5%">No</th>
                             <th>Username</th>
                             <th>Peran (Role)</th>
                             <th>Dibuat Pada</th>
-                            <th>Aksi</th>
+                            <th width="15%" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($users as $user)
                         <tr>
                             <td>{{ $loop->iteration }}</td>
-                            <td>{{ $user->username }}</td>
+                            <td class="font-weight-bold">{{ $user->username }}</td>
                             <td>
                                 @if ($user->isSuperAdmin())
-                                    <span class="badge badge-danger">Super Admin</span>
+                                    <span class="badge badge-danger px-2 py-1">Super Admin</span>
                                 @elseif ($user->isQualityControl())
-                                    <span class="badge badge-warning">Quality Control</span>
+                                    <span class="badge badge-warning px-2 py-1">Quality Control</span>
                                 @else
-                                    <span class="badge badge-info">Operator</span>
+                                    <span class="badge badge-info px-2 py-1">Operator</span>
                                 @endif
                             </td>
                             <td>{{ $user->created_at->format('d M Y') }}</td>
-                            <td>
-                                <a href="#" class="btn btn-sm btn-warning">Edit</a>
-                                {{-- Tombol Delete (Contoh) --}}
-                                {{-- <form action="" method="POST" class="d-inline">
-                                    @csrf @method('DELETE')
-                                    <button class="btn btn-sm btn-danger">Hapus</button>
-                                </form> --}}
+                            <td class="text-center">
+                                {{-- Tombol Edit --}}
+                                <a href="{{ route('user.edit', $user->id) }}" class="btn btn-sm btn-warning" title="Edit">
+                                    <i class="fas fa-pen"></i>
+                                </a>
+
+                                {{-- Tombol Hapus (Proteksi: Tidak bisa hapus diri sendiri) --}}
+                                @if(auth()->id() !== $user->id)
+                                    <form action="{{ route('user.destroy', $user->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        {{-- KONFIRMASI MENGGUNAKAN ONCLICK JAVASCRIPT --}}
+                                        <button type="submit" class="btn btn-sm btn-danger" 
+                                                onclick="return confirm('PERINGATAN: Apakah Anda yakin ingin menghapus user {{ $user->username }}? Tindakan ini tidak dapat dibatalkan.');" 
+                                                title="Hapus">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                @else
+                                    <button class="btn btn-sm btn-secondary" disabled title="Tidak bisa hapus akun sendiri">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                @endif
                             </td>
                         </tr>
                         @endforeach
@@ -68,3 +93,12 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        // Inisialisasi DataTables
+        $('#dataTable').DataTable();
+    });
+</script>
+@endpush

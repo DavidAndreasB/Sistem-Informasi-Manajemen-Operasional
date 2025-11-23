@@ -27,7 +27,7 @@
                             <th>No SPK</th>
                             <th>Nama Pemesan</th>
                             <th>Judul Proyek</th>
-                            <th>Jumlah Barang</th>
+                            {{-- Kolom 'Jml Item' DIHAPUS di sini --}}
                             <th>Tanggal</th>
                             <th>Status</th>
                             <th width="15%">Aksi</th>
@@ -40,10 +40,7 @@
                                 <td class="font-weight-bold">{{ $item->no_spk }}</td>
                                 <td>{{ $item->nama_pemesan }}</td>
                                 <td>{{ $item->judul_proyek }}</td>
-                                <td class="text-center">
-                                    {{-- Menghitung jumlah baris item di SPK ini --}}
-                                    <span class="badge badge-info">{{ $item->items->count() }} Item</span>
-                                </td>
+                                {{-- Kolom data 'Jml Item' DIHAPUS di sini --}}
                                 <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}</td>
                                 <td>
                                     @if($item->status == 'Diproses')
@@ -55,12 +52,6 @@
                                     @endif
                                 </td>
                                 <td class="text-center">
-                                    {{-- 
-                                        PERUBAHAN DISINI:
-                                        Dulu: button data-toggle="modal" ...
-                                        Sekarang: a href="{{ route('spk.show', ...) }}"
-                                        Ini akan membawa user pindah halaman ke tampilan surat penuh.
-                                    --}}
                                     <a href="{{ route('spk.show', $item->id) }}" class="btn btn-info btn-sm" title="Lihat Detail Surat">
                                         <i class="fas fa-eye"></i> Detail
                                     </a>
@@ -82,7 +73,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-5">
+                                {{-- Colspan disesuaikan menjadi 7 karena 1 kolom dihapus --}}
+                                <td colspan="7" class="text-center text-muted py-5">
                                     <i class="fas fa-folder-open fa-3x mb-3"></i><br>
                                     Belum ada data SPK. 
                                 </td>

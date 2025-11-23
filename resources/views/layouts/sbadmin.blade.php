@@ -41,23 +41,24 @@
             <div class="sidebar-heading">
                 Menu Utama
             </div>
-
-            @if(auth()->user() && auth()->user()->isSuperAdmin())
-            <li class="nav-item {{ request()->routeIs('user.*') || request()->routeIs('register*') ? 'active' : '' }}">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUser"
-                    aria-expanded="true" aria-controls="collapseUser">
+            
+                @if(auth()->user() && auth()->user()->isSuperAdmin())
+            {{-- MENU MANAJEMEN USER --}}
+            <li class="nav-item {{ request()->routeIs('user.*') || request()->routeIs('register') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('user.index') }}">
                     <i class="fas fa-fw fa-users"></i>
                     <span>Manajemen User</span>
                 </a>
-                <div id="collapseUser" class="collapse {{ request()->routeIs('user.*') || request()->routeIs('register*') ? 'show' : '' }}" 
-                     aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Kelola Akun:</h6>
-                        <a class="collapse-item {{ request()->routeIs('user.index') ? 'active' : '' }}" href="{{ route('user.index') }}">Daftar User</a>
-                        <a class="collapse-item {{ request()->routeIs('register') ? 'active' : '' }}" href="{{ route('register') }}">Tambah User Baru</a>
-                    </div>
-                </div>
             </li>
+
+            {{-- MENU BARU: SIMULASI --}}
+            <li class="nav-item {{ request()->routeIs('simulasi.*') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('simulasi.index') }}">
+                    <i class="fas fa-fw fa-calculator"></i>
+                    <span>Simulasi Harga</span>
+                </a>
+            </li>
+
             @endif
             <li class="nav-item {{ request()->routeIs('spk.*') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ route('spk.index') }}">
@@ -152,7 +153,10 @@
 
     <script>
         $(document).ready(function() {
-            $('#dataTable').DataTable();
+            // Inisialisasi DataTables jika ada elemen dengan id 'dataTable'
+            if ($('#dataTable').length) {
+                $('#dataTable').DataTable();
+            }
         });
     </script>
 

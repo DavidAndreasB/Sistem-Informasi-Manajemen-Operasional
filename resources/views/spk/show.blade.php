@@ -58,47 +58,115 @@
 
             <hr>
 
-            <h6 class="font-weight-bold text-secondary mb-3">Rincian Item Pekerjaan / Barang:</h6>
             <div class="table-responsive">
-                <table class="table table-bordered table-striped">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th style="width: 5%" class="text-center">No</th>
-                            <th style="width: 30%">Nama Barang</th>
-                            <th style="width: 50%">Rincian Spesifikasi</th>
-                            <th style="width: 15%" class="text-center">Quantity</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($spk->items as $item)
-                        <tr>
-                            <td class="text-center">{{ $loop->iteration }}</td>
-                            <td class="font-weight-bold">{{ $item->nama_barang }}</td>
-                            {{-- nl2br agar enter di textarea tetap muncul sebagai baris baru --}}
-                            <td>{!! nl2br(e($item->rincian)) !!}</td>
-                            <td class="text-center font-weight-bold">{{ $item->quantity }}</td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="4" class="text-center text-muted">Tidak ada item rincian.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th style="width: 5%" class="text-center">No</th>
+                        <th style="width: 25%">Nama Barang</th>
+                        <th style="width: 35%">Rincian Spesifikasi</th>
+                        <th style="width: 10%" class="text-center">Qty</th>
+                        <th style="width: 25%" class="text-center">Status Quality Control</th>
+                    </tr>
+                </thead>
+                <tbody>
+            @forelse($spk->items as $item)
+            <tr>
+                <td class="text-center align-middle">{{ $loop->iteration }}</td>
+                <td class="font-weight-bold align-middle">{{ $item->nama_barang }}</td>
+                <td class="align-middle">{!! nl2br(e($item->rincian)) !!}</td>
+                <td class="text-center font-weight-bold align-middle">{{ $item->quantity }}</td>
+                
+                {{-- KOLOM STATUS & AKSI --}}
+                <td class="p-3">
+                    
+                    {{-- SKENARIO 1: OPERATOR BELUM SELESAI --}}
+                    @if($item->status_pengerjaan == 'Proses')
+                        
+                        {{-- Tampilan untuk Operator: Tombol Selesai --}}
+                        @if(!auth()->user()->isQualityControl()) 
+                            <div class="text-center">
+                                <span class="badge badge-warning mb-2">Sedang Dikerjakan</span>
+                                <form action="{{ route('item.complete', $item->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn btn-success btn-sm btn-block" onclick="return confirm('Apakah barang ini sudah benar-benar selesai dan siap dicek QC?')">
+                                        <i class="fas fa-check"></i> Selesai Dikerjakan
+                                    </button>
+                                </form>
+                            </div>
+                        
+                        {{-- Tampilan untuk QC: Info Menunggu --}}
+                        @else 
+                            <div class="text-center text-muted">
+                                <i class="fas fa-hard-hat fa-2x mb-2"></i><br>
+                                <small class="font-weight-bold">Menunggu Operator<br>Menyelesaikan Barang</small>
+                            </div>
+                        @endif
 
-            <div class="row mt-5">
-                <div class="col-md-4 text-center">
-                    <p>Penerima Tugas</p>
-                    <br><br><br>
-                    <p>( .................................... )</p>
-                </div>
-                <div class="col-md-4 offset-md-4 text-center">
-                    <p>Hormat Kami,</p>
-                    <br><br><br>
-                    <p><strong>PT. Venus Tekindo</strong></p>
-                </div>
-            </div>
+                    {{-- SKENARIO 2: OPERATOR SUDAH SELESAI (Barang Siap QC) --}}
+                    @else 
+
+                        {{-- Tampilkan Status QC Saat Ini --}}
+                        <div class="text-center mb-2">
+                            @if($item->status_qc == 'OK')
+                                <span class="badge badge-success px-3 py-2 w-100"><i class="fas fa-check-circle"></i> QC: LULUS (OK)</span>
+                            @elseif($item->status_qc == 'Reject')
+                                <span class="badge badge-danger px-3 py-2 w-100"><i class="fas fa-times-circle"></i> QC: REJECT</span>
+                                @if($item->catatan_qc)<div class="small text-danger mt-1">Note: {{ $item->catatan_qc }}</div>@endif
+                            @else
+                                <span class="badge badge-info px-3 py-2 w-100"><i class="fas fa-hourglass-half"></i> Menunggu QC</span>
+                            @endif
+                        </div>
+
+                        {{-- AREA TOMBOL AKSI (Tergantung Role) --}}
+                        
+                        {{-- Jika QC / Admin: Tampilkan Form QC --}}
+                        @if(auth()->user()->isQualityControl() || auth()->user()->isSuperAdmin())
+                            <button class="btn btn-sm btn-outline-primary btn-block" type="button" 
+                                    data-toggle="collapse" data-target="#qcForm{{ $item->id }}">
+                                <i class="fas fa-edit"></i> Update QC
+                            </button>
+
+                            <div class="collapse mt-2" id="qcForm{{ $item->id }}">
+                                <div class="card card-body p-2 bg-light border-0">
+                                    <form action="{{ route('qc.update', $item->id) }}" method="POST">
+                                        @csrf @method('PUT')
+                                        <div class="form-group mb-2">
+                                            <select name="status_qc" class="form-control form-control-sm">
+                                                <option value="OK">Lulus (OK)</option>
+                                                <option value="Reject">Reject (NG)</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group mb-2">
+                                            <input type="text" name="catatan_qc" class="form-control form-control-sm" 
+                                                placeholder="Catatan..." value="{{ $item->catatan_qc }}">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-sm btn-block">Simpan QC</button>
+                                    </form>
+                                </div>
+                            </div>
+
+                        {{-- Jika Operator: Tombol Batal (Undo) hanya jika QC belum memeriksa --}}
+                        @elseif($item->status_qc == 'Pending')
+                            <form action="{{ route('item.undo', $item->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-link btn-sm text-secondary text-decoration-none">
+                                    <i class="fas fa-undo"></i> Batal Selesai
+                                </button>
+                            </form>
+                        @endif
+
+                    @endif
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="5" class="text-center text-muted">Tidak ada item rincian.</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
 
         </div>
     </div>

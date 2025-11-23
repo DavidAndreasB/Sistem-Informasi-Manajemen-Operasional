@@ -10,8 +10,17 @@ class SpkItem extends Model
     use HasFactory;
 
     protected $table = 'spk_items';
-    // Izinkan pengisian massal untuk kolom-kolom ini
-    protected $fillable = ['spk_id', 'nama_barang', 'rincian', 'quantity'];
+
+    // Pastikan status_qc dan catatan_qc ada di sini
+    protected $fillable = [
+        'spk_id', 
+        'nama_barang', 
+        'rincian', 
+        'quantity', 
+        'status_pengerjaan',
+        'status_qc',   // Kolom Status (Pending, OK, Reject)
+        'catatan_qc'   // Kolom Alasan Reject
+    ];
 
     public function spk()
     {

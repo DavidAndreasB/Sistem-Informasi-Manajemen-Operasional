@@ -7,6 +7,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\SpkController;         // S BESAR
 use App\Http\Controllers\JobSheetController;    // J S BESAR
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\QcController;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -15,9 +17,10 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// GANTI MENJADI INI:
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     
@@ -37,12 +40,29 @@ Route::middleware('auth')->group(function () {
     // PERHATIKAN BAGIAN '/{id}' DI BAWAH INI. JANGAN SAMPAI HILANG!
     Route::delete('/jobsheet/{id}', [JobSheetController::class, 'destroy'])->name('jobsheet.destroy');
 
-    // --- ADMIN ---
-    Route::middleware(['admin'])->group(function () {
+// --- ADMIN ---
+ Route::middleware(['admin'])->group(function () {
         Route::get('/register', [UserController::class, 'create'])->name('register'); 
         Route::post('/register', [UserController::class, 'store'])->name('register.store');
-        Route::get('/user', [UserController::class, 'index'])->name('user.index');
+
+        // --- MANAJEMEN USER (CRUD) ---
+    // index (daftar), edit (form edit), update (proses edit), destroy (hapus)
+    Route::resource('user', UserController::class)->except(['show', 'create', 'store']); 
+
+    // Kita keep route register manual untuk create/store agar konsisten
+    Route::get('/register', [UserController::class, 'create'])->name('register'); 
+    Route::post('/register', [UserController::class, 'store'])->name('register.store');
     });
+
+    // --- RUTE KHUSUS QC ---
+    Route::put('/qc/item/{id}', [QcController::class, 'update'])->name('qc.update');
+
+    // Di dalam middleware auth
+    Route::post('/jobsheet/item/{id}/complete', [JobSheetController::class, 'completeItem'])->name('item.complete');
+    Route::post('/jobsheet/item/{id}/undo', [JobSheetController::class, 'undoCompleteItem'])->name('item.undo');
+
+    // RUTE SIMULASI HARGA (Penawaran)
+        Route::get('/simulasi', [App\Http\Controllers\SimulasiController::class, 'index'])->name('simulasi.index');
 });
 
 require __DIR__.'/auth.php';

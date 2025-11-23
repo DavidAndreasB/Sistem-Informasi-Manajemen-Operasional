@@ -13,16 +13,19 @@
             </div>
             <div class="card-body">
                 <div class="row">
+                    {{-- KOLOM KIRI --}}
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>No SPK</label>
-                            <input type="text" name="no_spk" class="form-control" placeholder="Contoh: 001/SPK/2024" required>
+                            <input type="text" name="no_spk" class="form-control" placeholder="Contoh: 001/VT/2025" required>
                         </div>
                         <div class="form-group">
                             <label>Tanggal</label>
                             <input type="date" name="tanggal" class="form-control" value="{{ date('Y-m-d') }}" required>
                         </div>
                     </div>
+
+                    {{-- KOLOM KANAN --}}
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>Nama Pemesan</label>
@@ -31,6 +34,16 @@
                         <div class="form-group">
                             <label>Judul Proyek</label>
                             <input type="text" name="judul_proyek" class="form-control" placeholder="Judul Pekerjaan" required>
+                        </div>
+                        
+                        {{-- INPUT STATUS (BARU) --}}
+                        <div class="form-group">
+                            <label class="font-weight-bold text-primary">Status Awal</label>
+                            <select name="status" class="form-control" required>
+                                <option value="Diproses" selected>Diproses (Langsung Masuk Produksi)</option>
+                                <option value="Draft">Draft (Simpan Sementara)</option>
+                            </select>
+                            <small class="text-muted">*Pilih 'Draft' jika data belum lengkap/belum siap dikerjakan.</small>
                         </div>
                     </div>
                 </div>
@@ -49,7 +62,7 @@
                     <thead class="bg-light text-center">
                         <tr>
                             <th width="25%">Nama Barang</th>
-                            <th width="50%">Rincian (Enter untuk menambah baris)</th>
+                            <th width="50%">Rincian (Bisa Banyak Baris)</th>
                             <th width="15%">Quantity</th>
                             <th width="10%">Aksi</th>
                         </tr>
@@ -61,11 +74,10 @@
                                 <input type="text" name="items[0][nama_barang]" class="form-control" placeholder="Nama Item" required>
                             </td>
                             <td>
-                                {{-- PERUBAHAN DI SINI: Menggunakan TEXTAREA --}}
-                                <textarea name="items[0][rincian]" class="form-control" rows="3" placeholder="Masukkan Rincian" required></textarea>
+                                <textarea name="items[0][rincian]" class="form-control" rows="3" placeholder="- Detail 1&#10;- Detail 2" required></textarea>
                             </td>
                             <td class="align-top">
-                                <input type="number" name="items[0][quantity]" class="form-control text-center" placeholder="0" min="1" required>
+                                <input type="number" name="items[0][quantity]" class="form-control text-center" placeholder="1" min="1" required>
                             </td>
                             <td class="align-top text-center">
                                 <button type="button" class="btn btn-danger btn-sm remove-row" disabled><i class="fas fa-trash"></i></button>
@@ -89,7 +101,6 @@
     document.addEventListener('DOMContentLoaded', function () {
         let rowIdx = 1;
         
-        // Fungsi Tambah Baris
         document.getElementById('add-row').addEventListener('click', function () {
             let html = `
                 <tr>
@@ -97,11 +108,10 @@
                         <input type="text" name="items[${rowIdx}][nama_barang]" class="form-control" placeholder="Nama Item" required>
                     </td>
                     <td>
-                        {{-- TEXTAREA JUGA DITERAPKAN DI BARIS BARU --}}
-                        <textarea name="items[${rowIdx}][rincian]" class="form-control" rows="3" placeholder="- Rincian 1&#10;- Rincian 2" required></textarea>
+                        <textarea name="items[${rowIdx}][rincian]" class="form-control" rows="3" placeholder="Rincian..." required></textarea>
                     </td>
                     <td class="align-top">
-                        <input type="number" name="items[${rowIdx}][quantity]" class="form-control text-center" placeholder="0" min="1" required>
+                        <input type="number" name="items[${rowIdx}][quantity]" class="form-control text-center" placeholder="1" min="1" required>
                     </td>
                     <td class="align-top text-center">
                         <button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button>
@@ -112,7 +122,6 @@
             rowIdx++;
         });
 
-        // Fungsi Hapus Baris
         document.getElementById('items-table').addEventListener('click', function (e) {
             if (e.target.closest('.remove-row')) {
                 e.target.closest('tr').remove();
