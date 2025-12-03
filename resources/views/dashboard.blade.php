@@ -5,10 +5,6 @@
 
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Dashboard Operasional</h1>
-        {{-- Tombol Report (Opsional / Pemanis) --}}
-        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-            <i class="fas fa-download fa-sm text-white-50"></i> Generate Report
-        </a>
     </div>
 
     <div class="row">
@@ -89,7 +85,7 @@
                 <div class="card-body">
                     <div class="text-center mb-3">
                         <img class="img-fluid px-3 px-sm-4 mt-3 mb-4" style="width: 15rem;"
-                             src="{{ asset('sbadmin2/img/undraw_profile.svg') }}" alt="...">
+                             src="{{ asset('images/logoVenus.png') }}" alt="Logo Venus Tekindo">
                     </div>
                     <p>Selamat datang di Sistem Informasi Manajemen Operasional <strong>PT. Venus Tekindo</strong>.</p>
                     <a rel="nofollow" href="{{ route('spk.create') }}">Buat SPK Baru &rarr;</a>

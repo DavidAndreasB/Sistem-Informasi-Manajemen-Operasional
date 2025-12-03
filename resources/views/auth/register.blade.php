@@ -14,7 +14,6 @@
                     {{-- Perhatikan route-nya: kita arahkan ke register.store yang kita buat di routes/web.php --}}
                     <form method="POST" action="{{ route('register.store') }}">
                         @csrf
-
                         {{-- Username --}}
                         <div class="form-group">
                             <label for="username">Username</label>

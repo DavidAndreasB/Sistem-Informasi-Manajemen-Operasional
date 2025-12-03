@@ -29,16 +29,17 @@ class UserController extends Controller implements HasMiddleware
         $users = User::latest()->get();
         return view('user.index', compact('users')); 
     }
-
-    /**
-     * Form tambah user (Sebenarnya kita pakai /register, tapi ini opsi CRUD standar)
-     */
+    
     public function create()
     {
-        // Karena kita menggunakan alur /register khusus admin yang sudah dibuat sebelumnya,
-        // method ini bisa kita redirect ke sana atau biarkan jika Anda ingin view terpisah.
-        return redirect()->route('register');
+        $roles = [
+            User::ROLE_SUPER_ADMIN => 'Super Admin',
+            User::ROLE_QUALITY_CONTROL => 'Quality Control',
+            User::ROLE_OPERATOR => 'Operator',
+        ];
+        return view('auth.register', compact('roles'));
     }
+// ...
     
     /**
      * Simpan user (Ditangani oleh RegisterController logic atau custom store di sini)

@@ -10,15 +10,20 @@ use App\Models\SpkItem;
 
 class JobsheetController extends Controller
 {
-    /**
-     * Halaman 1: Daftar SPK Aktif
+   /**
+     * Halaman 1: Daftar SPK
      */
     public function index()
     {
-        $spks = Spk::where('status', 'Diproses')->latest()->get();
-        return view('jobsheet.index', compact('spks'));
-    }
+        // 1. Ambil SPK yang sedang berjalan
+        $activeSpks = Spk::where('status', 'Diproses')->latest()->get();
 
+        // 2. Ambil SEMUA SPK yang sudah selesai (Hapus take(20))
+        // DataTables akan menangani pagination-nya di tampilan (frontend)
+        $finishedSpks = Spk::where('status', 'Selesai')->latest()->get();
+
+        return view('jobsheet.index', compact('activeSpks', 'finishedSpks'));
+    }
     /**
      * Halaman 2: Input & History
      */

@@ -41,9 +41,8 @@
             <div class="sidebar-heading">
                 Menu Utama
             </div>
-            
-                @if(auth()->user() && auth()->user()->isSuperAdmin())
-            {{-- MENU MANAJEMEN USER --}}
+
+            @if(auth()->user() && auth()->user()->isSuperAdmin())
             <li class="nav-item {{ request()->routeIs('user.*') || request()->routeIs('register') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ route('user.index') }}">
                     <i class="fas fa-fw fa-users"></i>
@@ -51,15 +50,15 @@
                 </a>
             </li>
 
-            {{-- MENU BARU: SIMULASI --}}
+            {{-- MENU SIMULASI --}}
             <li class="nav-item {{ request()->routeIs('simulasi.*') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ route('simulasi.index') }}">
                     <i class="fas fa-fw fa-calculator"></i>
                     <span>Simulasi Harga</span>
                 </a>
             </li>
-
             @endif
+
             <li class="nav-item {{ request()->routeIs('spk.*') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ route('spk.index') }}">
                     <i class="fas fa-fw fa-file-contract"></i>
@@ -73,6 +72,22 @@
                     <span>Jobsheet</span>
                 </a>
             </li>
+
+            <hr class="sidebar-divider">
+
+            {{-- ================= LOGOUT DI SIDEBAR ================= --}}
+            <div class="sidebar-heading">
+                Akun
+            </div>
+
+            <li class="nav-item">
+                {{-- PERUBAHAN DI SINI: Menghapus class 'text-danger' agar warnanya putih standar --}}
+                <a class="nav-link" href="#" data-toggle="modal" data-target="#logoutModal">
+                    <i class="fas fa-fw fa-sign-out-alt"></i>
+                    <span>Logout / Keluar</span>
+                </a>
+            </li>
+            {{-- ===================================================== --}}
 
             <hr class="sidebar-divider d-none d-md-block">
 
@@ -95,32 +110,15 @@
 
                         <div class="topbar-divider d-none d-sm-block"></div>
 
-                        <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <li class="nav-item no-arrow">
+                            <span class="nav-link">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">
                                     {{ Auth::user()->username ?? 'Pengguna' }}
                                 </span>
                                 <img class="img-profile rounded-circle"
                                     src="{{ asset('sbadmin2/img/undraw_profile.svg') }}"
                                     onerror="this.src='https://source.unsplash.com/QAB-WJcbgJk/60x60'">
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="{{ route('profile.edit') }}">
-                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Profile
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <a class="dropdown-item" href="#" 
-                                       onclick="event.preventDefault(); this.closest('form').submit();">
-                                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                        Logout
-                                    </a>
-                                </form>
-                            </div>
+                            </span>
                         </li>
 
                     </ul>
@@ -141,6 +139,30 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Yakin ingin keluar?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Pilih "Logout" di bawah jika Anda ingin mengakhiri sesi ini.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Batal</button>
+                    
+                    {{-- Form Logout --}}
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="btn btn-danger">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ asset('sbadmin2/vendor/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('sbadmin2/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 
@@ -153,12 +175,13 @@
 
     <script>
         $(document).ready(function() {
-            // Inisialisasi DataTables jika ada elemen dengan id 'dataTable'
             if ($('#dataTable').length) {
                 $('#dataTable').DataTable();
             }
         });
     </script>
+
+    @stack('scripts')
 
 </body>
 
