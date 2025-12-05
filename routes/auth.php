@@ -15,7 +15,11 @@ Route::middleware('guest')->group(function () {
     // Route::get('register', [RegisteredUserController::class, 'create'])
     //    ->name('register');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    // DISABLED: Konflik dengan route register di web.php untuk admin
+    // Route register untuk public user creation sudah tidak digunakan
+    // Sekarang hanya admin yang bisa create user melalui UserController
+    // Route::post('register', [RegisteredUserController::class, 'store'])
+    //     ->name('register.store');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');

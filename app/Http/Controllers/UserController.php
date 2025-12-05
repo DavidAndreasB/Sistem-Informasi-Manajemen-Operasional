@@ -17,7 +17,7 @@ class UserController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('admin'), 
+            new Middleware('admin'),
         ];
     }
 
@@ -27,9 +27,9 @@ class UserController extends Controller implements HasMiddleware
     public function index()
     {
         $users = User::latest()->get();
-        return view('user.index', compact('users')); 
+        return view('user.index', compact('users'));
     }
-    
+
     public function create()
     {
         $roles = [
@@ -39,8 +39,7 @@ class UserController extends Controller implements HasMiddleware
         ];
         return view('auth.register', compact('roles'));
     }
-// ...
-    
+
     /**
      * Simpan user (Ditangani oleh RegisterController logic atau custom store di sini)
      */
@@ -52,13 +51,20 @@ class UserController extends Controller implements HasMiddleware
             'role' => ['required', 'integer', Rule::in([User::ROLE_SUPER_ADMIN, User::ROLE_QUALITY_CONTROL, User::ROLE_OPERATOR])],
         ]);
 
-        User::create([
-            'username' => $request->username,
-            'password' => Hash::make($request->password),
-            'role' => (int) $request->role,
-        ]);
+        try {
+            User::create([
+                'username' => $request->username,
+                'password' => Hash::make($request->password),
+                'role' => (int) $request->role,
+            ]);
 
-        return redirect()->route('user.index')->with('success', 'User baru berhasil ditambahkan.');
+            return redirect()->route('user.index')->with('success', 'User baru berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('User creation failed: ' . $e->getMessage());
+
+            return back()->withInput()->with('error', 'Gagal membuat user baru. Error: ' . $e->getMessage());
+        }
     }
 
     /**

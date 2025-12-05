@@ -16,7 +16,7 @@ class User extends Authenticatable
     const ROLE_OPERATOR = 3;
 
     protected $fillable = [
-        'username', 
+        'username',
         'password',
         'role',
     ];
@@ -26,8 +26,21 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $casts = [
+        'role' => 'integer',
+    ];
+
     // Helper methods...
-    public function isSuperAdmin(): bool { return $this->role === self::ROLE_SUPER_ADMIN; }
-    public function isQualityControl(): bool { return $this->role === self::ROLE_QUALITY_CONTROL; }
-    public function isOperator(): bool { return $this->role === self::ROLE_OPERATOR; }
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === self::ROLE_SUPER_ADMIN;
+    }
+    public function isQualityControl(): bool
+    {
+        return $this->role === self::ROLE_QUALITY_CONTROL;
+    }
+    public function isOperator(): bool
+    {
+        return $this->role === self::ROLE_OPERATOR;
+    }
 }
