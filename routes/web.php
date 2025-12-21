@@ -30,24 +30,25 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 
 // GROUP ROUTE: USER LOGIN
 Route::middleware('auth')->group(function () {
-    
+
     // --- PROFILE ---
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
+
     // --- PENGATURAN ---
     Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
 
     // --- SPK ---
     Route::resource('spk', SpkController::class);
+    Route::get('/spk/{spk}/pdf', [SpkController::class, 'printPdf'])->name('spk.pdf');
 
     // --- JOBSHEET ---
     Route::get('/jobsheet', [JobSheetController::class, 'index'])->name('jobsheet.index');
     Route::get('/jobsheet/{spk_id}', [JobSheetController::class, 'show'])->name('jobsheet.show');
     Route::post('/jobsheet', [JobSheetController::class, 'store'])->name('jobsheet.store');
     Route::delete('/jobsheet/{id}', [JobSheetController::class, 'destroy'])->name('jobsheet.destroy');
-    
+
     // Aksi Operator
     Route::post('/jobsheet/item/{id}/complete', [JobSheetController::class, 'completeItem'])->name('item.complete');
     Route::post('/jobsheet/item/{id}/undo', [JobSheetController::class, 'undoCompleteItem'])->name('item.undo');
@@ -59,9 +60,9 @@ Route::middleware('auth')->group(function () {
     // GROUP ROUTE: KHUSUS SUPER ADMIN
     // ==================================================================
     Route::middleware(['admin'])->group(function () {
-        
+
         // 1. Tambah User Baru (Register) - INI YANG SEBELUMNYA ERROR
-        Route::get('/register', [UserController::class, 'create'])->name('register'); 
+        Route::get('/register', [UserController::class, 'create'])->name('register');
         Route::post('/register', [UserController::class, 'store'])->name('register.store');
 
         // 2. Manajemen User (Edit, Update, Delete)
@@ -73,4 +74,4 @@ Route::middleware('auth')->group(function () {
 
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
