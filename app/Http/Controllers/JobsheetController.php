@@ -10,7 +10,7 @@ use App\Models\SpkItem;
 
 class JobsheetController extends Controller
 {
-   /**
+    /**
      * Halaman 1: Daftar SPK
      */
     public function index()
@@ -43,13 +43,31 @@ class JobsheetController extends Controller
             'jenis_pekerjaan' => 'required',
             'tanggal' => 'required|date',
             'jam_mulai' => 'required',
-            'jam_selesai' => 'required',
+            'jam_selesai' => 'required|after:jam_mulai',
+        ], [
+            'jam_selesai.after' => 'Waktu selesai harus lebih besar dari waktu mulai.',
         ]);
 
-        // Hitung durasi (abs = nilai mutlak agar tidak minus)
-        $mulai = Carbon::parse($request->jam_mulai);
-        $selesai = Carbon::parse($request->jam_selesai);
-        $totalJam = abs($selesai->diffInMinutes($mulai)) / 60; 
+        // Hitung durasi dengan menambahkan tanggal yang sama untuk parsing yang akurat
+        $tanggal = $request->tanggal;
+        $mulai = Carbon::parse($tanggal . ' ' . $request->jam_mulai);
+        $selesai = Carbon::parse($tanggal . ' ' . $request->jam_selesai);
+
+        // Hitung dari waktu mulai ke waktu selesai (bukan sebaliknya!)
+        // diffInMinutes() tanpa parameter kedua = absolute value (selalu positif)
+        $totalMinutes = $mulai->diffInMinutes($selesai);
+        $totalJam = $totalMinutes / 60;
+
+        // Debug logging
+        \Log::info('JobSheet Store Debug', [
+            'tanggal' => $tanggal,
+            'jam_mulai' => $request->jam_mulai,
+            'jam_selesai' => $request->jam_selesai,
+            'mulai_parsed' => $mulai->toDateTimeString(),
+            'selesai_parsed' => $selesai->toDateTimeString(),
+            'total_minutes' => $totalMinutes,
+            'total_jam' => $totalJam
+        ]);
 
         JobSheet::create([
             'spk_id' => $request->spk_id,
@@ -71,13 +89,13 @@ class JobsheetController extends Controller
     public function destroy($id)
     {
         $job = JobSheet::findOrFail($id);
-        
+
         // Hanya Admin atau Pembuat data yang boleh hapus
-        if(auth()->user()->isSuperAdmin() || auth()->id() == $job->operator_id){
-             $job->delete();
-             return back()->with('success', 'Data dihapus.');
+        if (auth()->user()->isSuperAdmin() || auth()->id() == $job->operator_id) {
+            $job->delete();
+            return back()->with('success', 'Data dihapus.');
         }
-        
+
         return back()->with('error', 'Akses ditolak.');
     }
 
@@ -87,10 +105,10 @@ class JobsheetController extends Controller
     public function completeItem($id)
     {
         $item = SpkItem::findOrFail($id);
-        
+
         // Validasi: Hanya bisa jika status masih 'Proses'
-        if($item->status_pengerjaan == 'Selesai') {
-             return back()->with('error', 'Item ini sudah ditandai selesai sebelumnya.');
+        if ($item->status_pengerjaan == 'Selesai') {
+            return back()->with('error', 'Item ini sudah ditandai selesai sebelumnya.');
         }
 
         // Update status jadi Selesai (Siap QC)
@@ -98,7 +116,7 @@ class JobsheetController extends Controller
 
         return back()->with('success', 'Item berhasil ditandai selesai. Menunggu pemeriksaan QC.');
     }
-    
+
     /**
      * (Opsional) Operator membatalkan selesai (jika kepencet)
      * Hanya bisa jika QC belum memeriksa (Status QC masih Pending)
@@ -107,7 +125,7 @@ class JobsheetController extends Controller
     {
         $item = SpkItem::findOrFail($id);
 
-        if($item->status_qc != 'Pending') {
+        if ($item->status_qc != 'Pending') {
             return back()->with('error', 'Tidak bisa dibatalkan karena QC sudah memeriksa.');
         }
 

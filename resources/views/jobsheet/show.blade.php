@@ -25,6 +25,18 @@
             </div>
         @endif
 
+        @if ($errors->any())
+            <div class="alert alert-danger border-left-danger alert-dismissible fade show" role="alert">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+        @endif
+
         {{-- Info Proyek --}}
         <div class="card shadow mb-4 border-left-{{ $spk->status == 'Selesai' ? 'success' : 'primary' }}">
             <div class="card-body">
@@ -61,7 +73,7 @@
                             <h6 class="m-0 font-weight-bold text-white">Input Aktivitas Harian</h6>
                         </div>
                         <div class="card-body">
-                            <form action="{{ route('jobsheet.store') }}" method="POST">
+                            <form id="jobsheetForm" action="{{ route('jobsheet.store') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="spk_id" value="{{ $spk->id }}">
 
@@ -98,7 +110,8 @@
                                     <textarea name="keterangan" class="form-control" rows="2"></textarea>
                                 </div>
 
-                                <button type="submit" class="btn btn-primary btn-block">
+                                <button type="submit" class="btn btn-primary btn-block"
+                                    onclick="return confirm('Apakah Anda yakin ingin menyimpan aktivitas ini?')">
                                     <i class="fas fa-save fa-sm"></i> Simpan
                                 </button>
                             </form>
@@ -150,7 +163,7 @@
                                                         {{ \Carbon\Carbon::parse($log->jam_mulai)->format('H:i') }} -
                                                         {{ \Carbon\Carbon::parse($log->jam_selesai)->format('H:i') }}
                                                     </div>
-                                                    <span class="badge badge-info">{{ number_format($log->total_jam, 1) }}
+                                                    <span class="badge badge-info">{{ number_format($log->total_jam, 2) }}
                                                         Jam</span>
                                                 </td>
                                                 <td>
@@ -218,6 +231,32 @@
                     defaultHour: 17,    // Default jam 5 sore
                     defaultMinute: 0
                 });
+
+                // Validasi waktu saat form disubmit
+                const form = document.getElementById('jobsheetForm');
+                if (form) {
+                    form.addEventListener('submit', function (e) {
+                        const jamMulai = document.querySelector("input[name='jam_mulai']").value;
+                        const jamSelesai = document.querySelector("input[name='jam_selesai']").value;
+
+                        if (jamMulai && jamSelesai) {
+                            // Parse waktu ke format yang bisa dibandingkan (HH:MM)
+                            const [mulaiHour, mulaiMinute] = jamMulai.split(':').map(Number);
+                            const [selesaiHour, selesaiMinute] = jamSelesai.split(':').map(Number);
+
+                            // Konversi ke menit untuk perbandingan yang mudah
+                            const mulaiTotal = mulaiHour * 60 + mulaiMinute;
+                            const selesaiTotal = selesaiHour * 60 + selesaiMinute;
+
+                            // Cek apakah waktu mulai lebih besar atau sama dengan waktu selesai
+                            if (mulaiTotal >= selesaiTotal) {
+                                e.preventDefault(); // Hentikan submit
+                                alert('Waktu mulai tidak boleh lebih besar atau sama dengan waktu selesai!\n\nContoh yang benar:\nMulai: 08:00\nSelesai: 17:00');
+                                return false;
+                            }
+                        }
+                    });
+                }
             });
         </script>
     @endpush
