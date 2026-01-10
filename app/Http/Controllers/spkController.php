@@ -148,6 +148,6 @@ class SpkController extends Controller implements HasMiddleware
         $safeNoSpk = str_replace(['/', '\\'], '_', $spk->no_spk);
         $filename = 'SPK_' . $safeNoSpk . '_' . date('YmdHis') . '.pdf';
 
-        return $pdf->download($filename);
+        return $pdf->stream($filename);
     }
 }

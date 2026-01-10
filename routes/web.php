@@ -70,6 +70,7 @@ Route::middleware('auth')->group(function () {
 
         // 3. Simulasi Harga
         Route::get('/simulasi', [SimulasiController::class, 'index'])->name('simulasi.index');
+        Route::post('/simulasi/pdf', [SimulasiController::class, 'exportPdf'])->name('simulasi.pdf');
     });
 
 });

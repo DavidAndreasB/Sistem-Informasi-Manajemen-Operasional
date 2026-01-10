@@ -228,7 +228,7 @@
                     dateFormat: "H:i",  // Format 24 jam (HH:MM)
                     time_24hr: true,    // Memaksa format 24 jam
                     minuteIncrement: 1,
-                    defaultHour: 17,    // Default jam 5 sore
+                    defaultHour: 10,    // Default jam 5 sore
                     defaultMinute: 0
                 });
 
