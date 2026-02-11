@@ -62,201 +62,260 @@
             </div>
         </div>
 
+        {{-- TWO COLUMN LAYOUT --}}
         <div class="row">
+            {{-- LEFT COLUMN: INLINE INPUT FORMS (Hidden for QC) --}}
+            @if(!Auth::user()->isQualityControl())
+                <div class="col-lg-5">
+                    <h5 class="mb-3 text-gray-800">
+                        <i class="fas fa-edit"></i> Input Aktivitas
+                    </h5>
 
-            {{-- LOGIKA TAMPILAN: Jika Selesai, Form Hilang --}}
-            @if($spk->status == 'Diproses')
+                    @foreach($spk->items as $item)
+                        <div class="card shadow mb-4 border-left-primary">
+                            <div class="card-header py-2 bg-gradient-primary">
+                                <h6 class="m-0 font-weight-bold text-white">
+                                    <i class="fas fa-box"></i> {{ $item->nama_barang }}
+                                    <span class="badge badge-light text-primary ml-2">{{ $item->quantity }} pcs</span>
+                                </h6>
+                            </div>
+                            <div class="card-body p-2">
+                                @php
+                                    // Load machines from pivot table relationship (not rincian column)
+                                    $machines = $item->machines;
+                                @endphp
 
-                <div class="col-lg-4">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3 bg-gradient-primary">
-                            <h6 class="m-0 font-weight-bold text-white">Input Aktivitas Harian</h6>
-                        </div>
-                        <div class="card-body">
-                            <form id="jobsheetForm" action="{{ route('jobsheet.store') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="spk_id" value="{{ $spk->id }}">
+                                @foreach($machines as $machine)
+                                    <div class="border rounded p-2 mb-2" style="background-color: #f8f9fc;">
+                                        <div class="font-weight-bold text-primary mb-2 small">
+                                            <i class="fas fa-cog"></i> {{ $machine->nama_mesin }}
+                                        </div>
 
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Tanggal</label>
-                                    <input type="date" name="tanggal" class="form-control" value="{{ date('Y-m-d') }}" required>
-                                </div>
+                                        {{-- Check if item can be worked on --}}
+                                        @php
+                                            // Item bisa dikerjakan jika:
+                                            // 1. SPK status Diproses DAN
+                                            // 2. (Item belum selesai ATAU status QC = Reject)
+                                            $canWork = $spk->status == 'Diproses' &&
+                                                ($item->status_pengerjaan != 'Selesai' || $item->status_qc == 'Reject');
+                                        @endphp
 
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Mesin / Pekerjaan</label>
-                                    <select name="jenis_pekerjaan" class="form-control" required>
-                                        <option value="" disabled selected>-- Pilih Mesin --</option>
-                                        @foreach(\App\Models\JobSheet::TARIF_MESIN as $mesin => $tarif)
-                                            <option value="{{ $mesin }}">{{ $mesin }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                        @if($canWork)
+                                            {{-- INLINE INPUT FORM --}}
+                                            <form action="{{ route('jobsheet.store') }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="spk_id" value="{{ $spk->id }}">
+                                                <input type="hidden" name="spk_item_id" value="{{ $item->id }}">
+                                                <input type="hidden" name="jenis_pekerjaan" value="{{ $machine->nama_mesin }}">
 
-                                <div class="form-row">
-                                    <div class="form-group col-6">
-                                        <label class="small font-weight-bold">Mulai</label>
-                                        <input type="text" name="jam_mulai" class="form-control" placeholder="HH:MM" required
-                                            readonly>
-                                    </div>
-                                    <div class="form-group col-6">
-                                        <label class="small font-weight-bold">Selesai</label>
-                                        <input type="text" name="jam_selesai" class="form-control" placeholder="HH:MM" required
-                                            readonly>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="small font-weight-bold">Keterangan</label>
-                                    <textarea name="keterangan" class="form-control" rows="2"></textarea>
-                                </div>
-
-                                <button type="submit" class="btn btn-primary btn-block"
-                                    onclick="return confirm('Apakah Anda yakin ingin menyimpan aktivitas ini?')">
-                                    <i class="fas fa-save fa-sm"></i> Simpan
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-8">
-
-            @else
-
-                    <div class="col-lg-12">
-                        <div class="alert alert-warning text-center">
-                            <i class="fas fa-lock"></i> Proyek ini telah selesai. Data hanya dapat <strong>Read-Only</strong>.
-                        </div>
-
-                @endif
-
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Riwayat Pengerjaan</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
-                                    <thead class="thead-light">
-                                        <tr>
-                                            <th>Tanggal</th>
-                                            <th>Aktivitas</th>
-                                            <th>Durasi</th>
-                                            <th>Operator</th>
-                                            {{-- Aksi hanya muncul jika Admin DAN status Diproses --}}
-                                            @if(auth()->user()->isSuperAdmin() && $spk->status == 'Diproses')
-                                                <th width="10%">Aksi</th>
-                                            @endif
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse($spk->jobsheets->sortByDesc('created_at') as $log)
-                                            <tr>
-                                                <td>{{ \Carbon\Carbon::parse($log->tanggal)->format('d/m/y') }}</td>
-                                                <td>
-                                                    <span
-                                                        class="font-weight-bold text-dark">{{ $log->jenis_pekerjaan }}</span><br>
-                                                    <span class="small text-muted">{{ $log->keterangan }}</span>
-                                                </td>
-                                                <td>
-                                                    <div class="small">
-                                                        {{ \Carbon\Carbon::parse($log->jam_mulai)->format('H:i') }} -
-                                                        {{ \Carbon\Carbon::parse($log->jam_selesai)->format('H:i') }}
+                                                <div class="row mb-1">
+                                                    <div class="col-6">
+                                                        <label class="small mb-0">Tanggal</label>
+                                                        <input type="date" name="tanggal" class="form-control form-control-sm"
+                                                            value="{{ date('Y-m-d') }}" required>
                                                     </div>
-                                                    <span class="badge badge-info">{{ number_format($log->total_jam, 2) }}
-                                                        Jam</span>
-                                                </td>
-                                                <td>
-                                                    <i class="fas fa-user-circle text-gray-400"></i>
-                                                    {{ $log->operator->username ?? 'User' }}
-                                                </td>
-
-                                                @if(auth()->user()->isSuperAdmin() && $spk->status == 'Diproses')
-                                                    <td class="text-center">
-                                                        <form action="{{ route('jobsheet.destroy', $log->id) }}" method="POST">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger btn-sm"
-                                                                onclick="return confirm('Hapus riwayat ini?')">
-                                                                <i class="fas fa-trash-alt"></i>
-                                                            </button>
-                                                        </form>
-                                                    </td>
-                                                @endif
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="5" class="text-center text-muted py-4">
-                                                    Belum ada aktivitas pengerjaan.
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
+                                                    <div class="col-6">
+                                                        <label class="small mb-0">Keterangan</label>
+                                                        <input type="text" name="keterangan" class="form-control form-control-sm"
+                                                            placeholder="Catatan...">
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-4">
+                                                        <label class="small mb-0">Jam Mulai</label>
+                                                        <input type="text" name="jam_mulai" class="form-control form-control-sm time-picker"
+                                                            placeholder="HH:MM" readonly required>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <label class="small mb-0">Jam Selesai</label>
+                                                        <input type="text" name="jam_selesai"
+                                                            class="form-control form-control-sm time-picker" placeholder="HH:MM" readonly
+                                                            required>
+                                                    </div>
+                                                    <div class="col-4 d-flex align-items-end">
+                                                        <button type="submit" class="btn btn-success btn-sm btn-block">
+                                                            <i class="fas fa-save"></i> Simpan
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        @else
+                                            {{-- Show status message instead of form --}}
+                                            @if($spk->status == 'Selesai')
+                                                <div class="text-center text-muted small">
+                                                    <i class="fas fa-check-circle text-success"></i> SPK Selesai
+                                                </div>
+                                            @elseif($item->status_pengerjaan == 'Selesai' && $item->status_qc != 'Reject')
+                                                <div class="text-center small">
+                                                    @if($item->status_qc == 'OK')
+                                                        <span class="badge badge-success">
+                                                            <i class="fas fa-check-double"></i> QC: LULUS
+                                                        </span>
+                                                    @elseif($item->status_qc == 'Pending')
+                                                        <span class="badge badge-info">
+                                                            <i class="fas fa-hourglass-half"></i> Menunggu QC
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        @endif
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
-                    </div>
+                    @endforeach
                 </div>
-            </div>
+            @endif
 
+            {{-- RIGHT COLUMN: RIWAYAT PENGERJAAN (GROUPED BY ITEM) --}}
+            <div class="{{ Auth::user()->isQualityControl() ? 'col-lg-12' : 'col-lg-7' }}">
+                <h5 class="mb-3 text-gray-800">
+                    <i class="fas fa-history"></i> Riwayat Pengerjaan
+                </h5>
+
+                @php
+                    // Group jobsheets by spk_item_id
+                    $groupedJobsheets = $spk->jobsheets->sortByDesc('created_at')->groupBy('spk_item_id');
+                @endphp
+
+                @forelse($groupedJobsheets as $itemId => $jobsheets)
+                    {{-- Item Header --}}
+                    <div class="mb-3">
+                        @if($itemId)
+                            @php
+                                $item = $jobsheets->first()->spkItem;
+                            @endphp
+                            <div class="alert alert-light border-left-primary mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="font-weight-bold text-primary mb-0">
+                                        <i class="fas fa-box"></i> Item: {{ $item->nama_barang ?? 'Unknown' }}
+                                        <span class="badge badge-primary ml-2">{{ $jobsheets->count() }} aktivitas</span>
+                                    </h6>
+
+                                    {{-- Selesai Kerjakan Button (Hidden for QC) --}}
+                                    @if(!Auth::user()->isQualityControl() && $spk->status == 'Diproses' && ($item->status_pengerjaan != 'Selesai' || $item->status_qc == 'Reject'))
+                                        <div class="d-flex align-items-center">
+                                            {{-- Show reject badge if status is reject --}}
+                                            @if($item->status_qc == 'Reject')
+                                                <span class="badge badge-danger mr-2">
+                                                    <i class="fas fa-times-circle"></i> QC: REJECT
+                                                </span>
+                                            @endif
+
+                                            {{-- Show button for incomplete or rejected items --}}
+                                            <form action="{{ route('item.complete', $item->id) }}" method="POST" class="mb-0">
+                                                @csrf
+                                                <button type="submit" class="btn btn-success btn-sm"
+                                                    onclick="return confirm('Apakah item {{ $item->nama_barang }} sudah benar-benar selesai dan siap dicek QC?')">
+                                                    <i class="fas fa-check"></i> Selesai Kerjakan
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @elseif($item->status_pengerjaan == 'Selesai')
+                                        @if($item->status_qc == 'OK')
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-check-double"></i> QC: LULUS
+                                            </span>
+                                        @elseif($item->status_qc == 'Reject')
+                                            <span class="badge badge-danger">
+                                                <i class="fas fa-times-circle"></i> QC: REJECT
+                                            </span>
+                                        @else
+                                            <span class="badge badge-info">
+                                                <i class="fas fa-hourglass-half"></i> Menunggu QC
+                                            </span>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+                        @else
+                            <div class="alert alert-light border-left-secondary mb-2">
+                                <h6 class="font-weight-bold text-secondary mb-0">
+                                    <i class="fas fa-tasks"></i> Aktivitas Umum (Tidak terhubung ke item spesifik)
+                                    <span class="badge badge-secondary ml-2">{{ $jobsheets->count() }} aktivitas</span>
+                                </h6>
+                            </div>
+                        @endif
+
+                        {{-- Jobsheet Table for this Item --}}
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover table-sm" width="100%" cellspacing="0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Aktivitas</th>
+                                        <th>Durasi</th>
+                                        <th>Operator</th>
+                                        {{-- Aksi hanya muncul jika Admin DAN status Diproses --}}
+                                        @if(auth()->user()->isSuperAdmin() && $spk->status == 'Diproses')
+                                            <th width="10%">Aksi</th>
+                                        @endif
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($jobsheets as $log)
+                                        <tr>
+                                            <td>{{ \Carbon\Carbon::parse($log->tanggal)->format('d/m/y') }}</td>
+                                            <td>
+                                                <span class="font-weight-bold text-dark">{{ $log->jenis_pekerjaan }}</span><br>
+                                                <span class="small text-muted">{{ $log->keterangan }}</span>
+                                            </td>
+                                            <td>
+                                                <div class="small">
+                                                    {{ \Carbon\Carbon::parse($log->jam_mulai)->format('H:i') }} -
+                                                    {{ \Carbon\Carbon::parse($log->jam_selesai)->format('H:i') }}
+                                                </div>
+                                                <span class="badge badge-info">{{ number_format($log->total_jam, 2) }} Jam</span>
+                                            </td>
+                                            <td>
+                                                <i class="fas fa-user-circle text-gray-400"></i>
+                                                {{ $log->operator->username ?? 'User' }}
+                                            </td>
+
+                                            @if(auth()->user()->isSuperAdmin() && $spk->status == 'Diproses')
+                                                <td class="text-center">
+                                                    <form action="{{ route('jobsheet.destroy', $log->id) }}" method="POST">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger btn-sm"
+                                                            onclick="return confirm('Hapus riwayat ini?')">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            @endif
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @empty
+                    <div class="alert alert-warning text-center">
+                        <i class="fas fa-info-circle"></i> Belum ada aktivitas pengerjaan.
+                    </div>
+                @endforelse
+            </div>
         </div>
+
+    </div>
 @endsection
 
-    @push('scripts')
-        <!-- Tambahkan Flatpickr CSS dan JS untuk time picker format 24 jam -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+@push('scripts')
+    {{-- Flatpickr untuk Time Picker --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-        <script>
-            // Inisialisasi Flatpickr untuk input waktu dengan format 24 jam
-            document.addEventListener('DOMContentLoaded', function () {
-                // Konfigurasi untuk jam mulai
-                flatpickr("input[name='jam_mulai']", {
-                    enableTime: true,
-                    noCalendar: true,
-                    dateFormat: "H:i",  // Format 24 jam (HH:MM)
-                    time_24hr: true,    // Memaksa format 24 jam
-                    minuteIncrement: 1,
-                    defaultHour: 8,     // Default jam 8 pagi
-                    defaultMinute: 0
-                });
-
-                // Konfigurasi untuk jam selesai
-                flatpickr("input[name='jam_selesai']", {
-                    enableTime: true,
-                    noCalendar: true,
-                    dateFormat: "H:i",  // Format 24 jam (HH:MM)
-                    time_24hr: true,    // Memaksa format 24 jam
-                    minuteIncrement: 1,
-                    defaultHour: 10,    // Default jam 5 sore
-                    defaultMinute: 0
-                });
-
-                // Validasi waktu saat form disubmit
-                const form = document.getElementById('jobsheetForm');
-                if (form) {
-                    form.addEventListener('submit', function (e) {
-                        const jamMulai = document.querySelector("input[name='jam_mulai']").value;
-                        const jamSelesai = document.querySelector("input[name='jam_selesai']").value;
-
-                        if (jamMulai && jamSelesai) {
-                            // Parse waktu ke format yang bisa dibandingkan (HH:MM)
-                            const [mulaiHour, mulaiMinute] = jamMulai.split(':').map(Number);
-                            const [selesaiHour, selesaiMinute] = jamSelesai.split(':').map(Number);
-
-                            // Konversi ke menit untuk perbandingan yang mudah
-                            const mulaiTotal = mulaiHour * 60 + mulaiMinute;
-                            const selesaiTotal = selesaiHour * 60 + selesaiMinute;
-
-                            // Cek apakah waktu mulai lebih besar atau sama dengan waktu selesai
-                            if (mulaiTotal >= selesaiTotal) {
-                                e.preventDefault(); // Hentikan submit
-                                alert('Waktu mulai tidak boleh lebih besar atau sama dengan waktu selesai!\n\nContoh yang benar:\nMulai: 08:00\nSelesai: 17:00');
-                                return false;
-                            }
-                        }
-                    });
-                }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize time pickers for all time inputs
+            flatpickr('.time-picker', {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true,
+                minuteIncrement: 1
             });
-        </script>
-    @endpush
+        });
+    </script>
+@endpush

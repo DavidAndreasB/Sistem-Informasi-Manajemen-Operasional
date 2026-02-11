@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -61,6 +62,27 @@
                 </a>
             </li>
 
+            {{-- DEBUG: Show role for testing --}}
+            <li class="nav-item">
+                <div class="nav-link text-white-50 small">
+                    Role: {{ auth()->user()->role ?? 'N/A' }}
+                </div>
+            </li>
+
+            {{-- Admin Only: Mesin Management --}}
+            @if(auth()->user()->role === 1)
+                <hr class="sidebar-divider">
+                <div class="sidebar-heading">
+                    Master Data
+                </div>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('machines.index') }}">
+                        <i class="fas fa-cogs"></i>
+                        <span>Mesin</span>
+                    </a>
+                </li>
+            @endif
+
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('pengaturan.index') }}">
                     <i class="fas fa-cog"></i>
@@ -93,23 +115,24 @@
         </div>
         <!-- End of Content Wrapper -->
     </div>
-                <!-- SB Admin 2 JS -->
-            <script src="{{ asset('sbadmin2/vendor/jquery/jquery.min.js') }}"></script>
-            <script src="{{ asset('sbadmin2/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-            <script src="{{ asset('sbadmin2/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
-            <script src="{{ asset('sbadmin2/js/sb-admin-2.min.js') }}"></script>
+    <!-- SB Admin 2 JS -->
+    <script src="{{ asset('sbadmin2/vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ asset('sbadmin2/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('sbadmin2/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+    <script src="{{ asset('sbadmin2/js/sb-admin-2.min.js') }}"></script>
 
-            <!-- DataTables JS -->
-            <script src="{{ asset('sbadmin2/vendor/datatables/jquery.dataTables.min.js') }}"></script>
-            <script src="{{ asset('sbadmin2/vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
+    <!-- DataTables JS -->
+    <script src="{{ asset('sbadmin2/vendor/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('sbadmin2/vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
 
-            <!-- Aktifkan DataTables -->
-            <script>
-                $(document).ready(function() {
-                    $('#dataTable').DataTable();
-                });
-            </script>
+    <!-- Aktifkan DataTables -->
+    <script>
+        $(document).ready(function () {
+            $('#dataTable').DataTable();
+        });
+    </script>
 
 
 </body>
+
 </html>

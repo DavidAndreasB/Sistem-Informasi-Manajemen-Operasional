@@ -35,7 +35,7 @@
                             </tr>
                             <tr>
                                 <th>Nama Pemesan</th>
-                                <td>: {{ $spk->nama_pemesan }}</td>
+                                <td>: {{ $spk->client_inisial }}</td>
                             </tr>
                             <tr>
                                 <th>Judul Proyek</th>
@@ -75,7 +75,17 @@
                                 <tr>
                                     <td class="text-center align-middle">{{ $loop->iteration }}</td>
                                     <td class="font-weight-bold align-middle">{{ $item->nama_barang }}</td>
-                                    <td class="align-middle">{!! nl2br(e($item->rincian)) !!}</td>
+                                    <td class="align-middle">
+                                        @php
+                                            $rincianLines = array_filter(explode("\n", $item->rincian));
+                                        @endphp
+
+                                        @foreach($rincianLines as $rincian)
+                                            <div class="mb-1">
+                                                • {{ trim($rincian) }}
+                                            </div>
+                                        @endforeach
+                                    </td>
                                     <td class="text-center font-weight-bold align-middle">{{ $item->quantity }}</td>
 
                                     {{-- KOLOM STATUS & AKSI --}}
@@ -126,33 +136,44 @@
 
                                             {{-- AREA TOMBOL AKSI (Tergantung Role) --}}
 
-                                            {{-- Jika QC / Admin: Tampilkan Form QC --}}
+                                            {{-- Jika QC / Admin: Tampilkan Form QC (hanya jika status BUKAN OK) --}}
                                             @if(auth()->user()->isQualityControl() || auth()->user()->isSuperAdmin())
-                                                <button class="btn btn-sm btn-outline-primary btn-block" type="button"
-                                                    data-toggle="collapse" data-target="#qcForm{{ $item->id }}">
-                                                    <i class="fas fa-edit"></i> Update QC
-                                                </button>
 
-                                                <div class="collapse mt-2" id="qcForm{{ $item->id }}">
-                                                    <div class="card card-body p-2 bg-light border-0">
-                                                        <form action="{{ route('qc.update', $item->id) }}" method="POST">
-                                                            @csrf @method('PUT')
-                                                            <div class="form-group mb-2">
-                                                                <select name="status_qc" class="form-control form-control-sm">
-                                                                    <option value="OK">Lulus (OK)</option>
-                                                                    <option value="Reject">Reject (NG)</option>
-                                                                </select>
-                                                            </div>
-                                                            <div class="form-group mb-2">
-                                                                <input type="text" name="catatan_qc"
-                                                                    class="form-control form-control-sm" placeholder="Catatan..."
-                                                                    value="{{ $item->catatan_qc }}">
-                                                            </div>
-                                                            <button type="submit" class="btn btn-primary btn-sm btn-block">Simpan
-                                                                QC</button>
-                                                        </form>
+                                                @if($item->status_qc != 'OK')
+                                                    {{-- Tombol Update QC (hanya jika belum Lulus) --}}
+                                                    <button class="btn btn-sm btn-outline-primary btn-block" type="button"
+                                                        data-toggle="collapse" data-target="#qcForm{{ $item->id }}">
+                                                        <i class="fas fa-edit"></i> Update QC
+                                                    </button>
+
+                                                    <div class="collapse mt-2" id="qcForm{{ $item->id }}">
+                                                        <div class="card card-body p-2 bg-light border-0">
+                                                            <form action="{{ route('qc.update', $item->id) }}" method="POST">
+                                                                @csrf @method('PUT')
+                                                                <div class="form-group mb-2">
+                                                                    <select name="status_qc" class="form-control form-control-sm">
+                                                                        <option value="OK">Lulus (OK)</option>
+                                                                        <option value="Reject">Reject (NG)</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="form-group mb-2">
+                                                                    <input type="text" name="catatan_qc"
+                                                                        class="form-control form-control-sm" placeholder="Catatan..."
+                                                                        value="{{ $item->catatan_qc }}">
+                                                                </div>
+                                                                <button type="submit" class="btn btn-primary btn-sm btn-block">Simpan
+                                                                    QC</button>
+                                                            </form>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                @else
+                                                    {{-- Jika sudah OK, tampilkan pesan bahwa status sudah final --}}
+                                                    <div class="text-center">
+                                                        <small class="text-success">
+                                                            <i class="fas fa-lock"></i> Status sudah final (Lulus)
+                                                        </small>
+                                                    </div>
+                                                @endif
 
                                                 {{-- Jika Operator: Tombol Batal (Undo) hanya jika QC belum memeriksa --}}
                                             @elseif($item->status_qc == 'Pending')

@@ -11,6 +11,8 @@ use App\Http\Controllers\JobSheetController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QcController;
 use App\Http\Controllers\SimulasiController;
+use App\Http\Controllers\MachineController;
+use App\Http\Controllers\ClientController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +40,23 @@ Route::middleware('auth')->group(function () {
 
     // --- PENGATURAN ---
     Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
+
+    // === ADMIN ONLY ROUTES ===
+    Route::middleware(['admin'])->group(function () {
+        // User Management
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+
+        // Machine Management
+        Route::resource('machines', MachineController::class);
+
+        // Client Management
+        Route::resource('clients', ClientController::class);
+    });
 
     // --- SPK ---
     Route::resource('spk', SpkController::class);

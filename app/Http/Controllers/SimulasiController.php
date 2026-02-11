@@ -3,16 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\JobSheet; // Kita ambil tarif dari sini
+use App\Models\Machine; // Ambil tarif dari database
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SimulasiController extends Controller
 {
     public function index()
     {
-        // Ambil daftar tarif yang sudah didefinisikan di Model JobSheet
-        // Agar jika harga naik, simulasi juga ikut naik otomatis.
-        $tarifs = JobSheet::TARIF_MESIN;
+        // Ambil daftar tarif dari database
+        // Menggunakan pluck untuk membuat array [nama_mesin => tarif]
+        $tarifs = Machine::pluck('tarif', 'nama_mesin')->toArray();
 
         return view('simulasi.index', compact('tarifs'));
     }

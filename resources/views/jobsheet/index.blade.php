@@ -31,8 +31,8 @@
                                     <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}</td>
                                     <td class="text-center">
                                         <a href="{{ route('jobsheet.show', $item->id) }}"
-                                            class="btn btn-success btn-sm shadow-sm font-weight-bold">
-                                            <i class="fas fa-tools fa-sm"></i> Kerjakan
+                                            class="btn btn-primary btn-sm shadow-sm">
+                                            <i class="fas fa-eye fa-sm"></i> Lihat Detail
                                         </a>
                                     </td>
                                 </tr>

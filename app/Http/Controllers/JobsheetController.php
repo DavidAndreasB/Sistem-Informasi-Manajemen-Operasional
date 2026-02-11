@@ -29,7 +29,7 @@ class JobsheetController extends Controller
      */
     public function show($spk_id)
     {
-        $spk = Spk::with(['jobsheets.operator'])->findOrFail($spk_id);
+        $spk = Spk::with(['jobsheets.operator', 'items.machines'])->findOrFail($spk_id);
         return view('jobsheet.show', compact('spk'));
     }
 
@@ -40,6 +40,7 @@ class JobsheetController extends Controller
     {
         $request->validate([
             'spk_id' => 'required|exists:spks,id',
+            'spk_item_id' => 'nullable|exists:spk_items,id',
             'jenis_pekerjaan' => 'required',
             'tanggal' => 'required|date',
             'jam_mulai' => 'required',
@@ -66,11 +67,13 @@ class JobsheetController extends Controller
             'mulai_parsed' => $mulai->toDateTimeString(),
             'selesai_parsed' => $selesai->toDateTimeString(),
             'total_minutes' => $totalMinutes,
-            'total_jam' => $totalJam
+            'total_jam' => $totalJam,
+            'spk_item_id' => $request->spk_item_id
         ]);
 
         JobSheet::create([
             'spk_id' => $request->spk_id,
+            'spk_item_id' => $request->spk_item_id,
             'operator_id' => auth()->id(),
             'tanggal' => $request->tanggal,
             'jenis_pekerjaan' => $request->jenis_pekerjaan,
@@ -107,12 +110,15 @@ class JobsheetController extends Controller
         $item = SpkItem::findOrFail($id);
 
         // Validasi: Hanya bisa jika status masih 'Proses'
-        if ($item->status_pengerjaan == 'Selesai') {
+        if ($item->status_pengerjaan == 'Selesai' && $item->status_qc != 'Reject') {
             return back()->with('error', 'Item ini sudah ditandai selesai sebelumnya.');
         }
 
         // Update status jadi Selesai (Siap QC)
-        $item->update(['status_pengerjaan' => 'Selesai']);
+        $item->update([
+            'status_pengerjaan' => 'Selesai',
+            'status_qc' => 'Pending'  // Reset QC status ke Pending (Menunggu QC)
+        ]);
 
         return back()->with('success', 'Item berhasil ditandai selesai. Menunggu pemeriksaan QC.');
     }

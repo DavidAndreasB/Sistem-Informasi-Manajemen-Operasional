@@ -20,20 +20,17 @@ class QcController extends Controller
         // Cari Item Barang
         $item = SpkItem::findOrFail($id);
 
-        // 2. Validasi Status SPK
-        // Jika SPK sudah 'Selesai', QC tidak boleh mengubah lagi (kecuali dibuka lagi oleh Admin)
-        // Namun, logika di bawah akan memungkinkan perubahan status bolak-balik jika diperlukan.
-        // Jadi kita izinkan jika statusnya 'Diproses' atau 'Selesai' (untuk revisi).
-        if ($item->spk->status == 'Draft') {
-            return back()->with('error', 'Gagal! QC tidak dapat dilakukan pada Draft.');
-        }
-
-        // 3. Validasi Input Form
+        // 2. Validasi Input Form
         $request->validate([
             'status_qc' => 'required|in:Pending,OK,Reject',
             'catatan_qc' => 'nullable|string',
         ]);
-        
+
+        // 3a. Validasi: Cegah rollback dari OK ke Reject
+        if ($item->status_qc == 'OK' && $request->status_qc == 'Reject') {
+            return back()->with('error', 'Status yang sudah LULUS tidak dapat diubah kembali ke REJECT.');
+        }
+
         // 4. Update Status Item Barang
         $item->update([
             'status_qc' => $request->status_qc,
@@ -43,7 +40,7 @@ class QcController extends Controller
         // ========================================================================
         // LOGIKA OTOMATIS UPDATE STATUS SPK (AUTO-COMPLETE)
         // ========================================================================
-        
+
         // Ambil SPK Induk
         $spk = $item->spk;
 

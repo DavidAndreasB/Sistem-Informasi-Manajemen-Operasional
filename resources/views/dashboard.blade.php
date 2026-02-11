@@ -112,11 +112,11 @@
                                             <td><a href="{{ route('spk.show', $spk->id) }}">{{ $spk->no_spk }}</a></td>
                                             <td>{{ $spk->judul_proyek }}</td>
                                             <td>
-                                                @if($spk->status == 'Diproses') <span
-                                                    class="badge badge-warning">Diproses</span>
-                                                @elseif($spk->status == 'Selesai') <span
-                                                    class="badge badge-success">Selesai</span>
-                                                @else <span class="badge badge-secondary">Draft</span> @endif
+                                                @if ($spk->status == 'Selesai')
+                                                    <span class="badge badge-success">Selesai</span>
+                                                @else
+                                                    <span class="badge badge-warning">Diproses</span>
+                                                @endif
                                             </td>
                                         </tr>
                                     @empty

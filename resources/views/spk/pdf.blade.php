@@ -69,11 +69,6 @@
             font-size: 10pt;
         }
 
-        .status-draft {
-            background-color: #e0e0e0;
-            color: #333;
-        }
-
         .status-diproses {
             background-color: #fff3cd;
             color: #856404;
@@ -181,7 +176,7 @@
         </div>
         <div class="info-row">
             <div class="info-label">Nama Pemesan</div>
-            <div class="info-value">: {{ $spk->nama_pemesan }}</div>
+            <div class="info-value">: {{ $spk->client_inisial }}</div>
         </div>
         <div class="info-row">
             <div class="info-label">Judul Proyek</div>
@@ -192,8 +187,7 @@
             <div class="info-value">:
                 <span class="status-badge 
                     @if($spk->status == 'Selesai') status-selesai 
-                    @elseif($spk->status == 'Diproses') status-diproses 
-                    @else status-draft 
+                    @else status-diproses 
                     @endif">
                     {{ $spk->status }}
                 </span>

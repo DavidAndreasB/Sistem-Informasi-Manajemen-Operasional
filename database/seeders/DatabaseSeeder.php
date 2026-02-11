@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
         // ==============================================================
         // 1. BUAT AKUN UTAMA (STATIC)
         // ==============================================================
-        
+
         // Admin
         $admin = User::updateOrCreate(['username' => 'superadmin'], [
             'password' => Hash::make('admin123'),
@@ -40,37 +40,81 @@ class DatabaseSeeder extends Seeder
         }
 
         // ==============================================================
-        // 2. GENERATE 10 SPK DUMMY
+        // 2. SEED MACHINES (MASTER DATA)
+        // ==============================================================
+
+        $machines = [
+            ['nama_mesin' => 'Milling', 'tarif' => 120000],
+            ['nama_mesin' => 'Bubut Kecil', 'tarif' => 120000],
+            ['nama_mesin' => 'Bubut Besar', 'tarif' => 250000],
+            ['nama_mesin' => 'Grinding', 'tarif' => 250000],
+            ['nama_mesin' => 'Las', 'tarif' => 200000],
+            ['nama_mesin' => 'Metal Spray', 'tarif' => 150000],
+            ['nama_mesin' => 'Sand Blasting / Pengecatan', 'tarif' => 200000],
+        ];
+
+        foreach ($machines as $machine) {
+            \App\Models\Machine::updateOrCreate(
+                ['nama_mesin' => $machine['nama_mesin']],
+                ['tarif' => $machine['tarif']]
+            );
+        }
+
+        // ==============================================================
+        // 3. SEED CLIENTS (MASTER DATA)
+        // ==============================================================
+
+        $clients = [
+            ['nama_lengkap' => 'PT. Pantai Mas', 'inisial' => 'PT. PM'],
+            ['nama_lengkap' => 'CV. Surya Abadi', 'inisial' => 'CV. SA'],
+            ['nama_lengkap' => 'PT. Karya Mandiri', 'inisial' => 'PT. KM'],
+            ['nama_lengkap' => 'UD. Makmur Jaya', 'inisial' => 'UD. MJ'],
+        ];
+
+        foreach ($clients as $client) {
+            \App\Models\Client::updateOrCreate(
+                ['nama_lengkap' => $client['nama_lengkap']],
+                ['inisial' => $client['inisial']]
+            );
+        }
+
+        // Ambil semua client untuk digunakan di SPK
+        $allClients = \App\Models\Client::all();
+
+        // ==============================================================
+        // 4. GENERATE 10 SPK DUMMY
         // ==============================================================
 
         for ($i = 1; $i <= 10; $i++) {
-            
-            // Tentukan status secara acak
-            // 20% Draft, 50% Diproses, 30% Selesai
-            $rand = rand(1, 10);
-            if ($rand <= 2) $status = 'Draft';
-            elseif ($rand <= 7) $status = 'Diproses';
-            else $status = 'Selesai';
 
-            // Buat Header SPK
-            $spk = Spk::create([
-                // Format No SPK: 00X/VT/BLN/THN
-                'no_spk' => sprintf('%03d/VT/PRJ/%s', $i, date('Y')), 
-                'tanggal' => Carbon::now()->subDays(rand(1, 60)), // Tanggal acak 2 bulan terakhir
-                'nama_pemesan' => fake()->company(),
-                'judul_proyek' => 'Project ' . fake()->words(3, true),
+            // Tentukan status secara acak
+            // 70% Diproses, 30% Selesai (Draft dihapus)
+            $rand = rand(1, 10);
+            if ($rand <= 7)
+                $status = 'Diproses';
+            else
+                $status = 'Selesai';
+
+            $randomClient = $allClients->random();
+
+            $spk = \App\Models\Spk::create([
+                'no_spk' => sprintf('SPK/%s/%04d', date('Y.m'), $i),
+                'tanggal' => now()->subDays(rand(0, 60)),
+                'client_id' => $randomClient->id, // Use client_id instead of nama_pemesan
+                'judul_proyek' => 'Proyek ' . fake()->sentence(3),
                 'status' => $status,
-                'created_by' => $admin->id,
+                'created_by' => 1,
             ]);
 
             // ==========================================================
-            // 3. GENERATE ITEM BARANG UNTUK SETIAP SPK
+            // 4. GENERATE ITEM BARANG UNTUK SETIAP SPK
             // ==========================================================
-            
+
             $jumlahItem = rand(2, 5); // Setiap SPK punya 2-5 jenis barang
-            
+            $spkItems = []; // Array untuk menyimpan item-item yang dibuat
+
             for ($j = 1; $j <= $jumlahItem; $j++) {
-                
+
                 // Tentukan status per item berdasarkan status SPK
                 $statusPengerjaan = 'Proses';
                 $statusQC = 'Pending';
@@ -84,13 +128,16 @@ class DatabaseSeeder extends Seeder
                     if ($statusPengerjaan == 'Selesai') {
                         // Jika operator selesai, QC bisa Pending/OK/Reject
                         $qcRand = rand(1, 10);
-                        if ($qcRand > 8) $statusQC = 'Reject';
-                        elseif ($qcRand > 4) $statusQC = 'OK';
-                        else $statusQC = 'Pending';
+                        if ($qcRand > 8)
+                            $statusQC = 'Reject';
+                        elseif ($qcRand > 4)
+                            $statusQC = 'OK';
+                        else
+                            $statusQC = 'Pending';
                     }
                 }
 
-                SpkItem::create([
+                $item = SpkItem::create([
                     'spk_id' => $spk->id,
                     'nama_barang' => 'Part ' . fake()->word() . '-' . $j,
                     'rincian' => fake()->sentence(10), // Kalimat acak
@@ -99,33 +146,38 @@ class DatabaseSeeder extends Seeder
                     'status_qc' => $statusQC,
                     'catatan_qc' => ($statusQC == 'Reject') ? 'Ukuran tidak presisi, tolong perbaiki.' : null,
                 ]);
+
+                $spkItems[] = $item; // Simpan item ke array
             }
 
             // ==========================================================
-            // 4. GENERATE JOBSHEET (HANYA JIKA SUDAH DIPROSES/SELESAI)
+            // 5. GENERATE JOBSHEET (untuk semua SPK)
             // ==========================================================
 
-            if ($status != 'Draft') {
-                $jumlahLog = rand(3, 8); // Ada 3-8 aktivitas pengerjaan
+            $jumlahLog = rand(3, 8); // Ada 3-8 aktivitas pengerjaan
 
-                for ($k = 1; $k <= $jumlahLog; $k++) {
-                    $mesin = array_rand(JobSheet::TARIF_MESIN); // Pilih mesin acak
-                    $durasi = rand(1, 5); // 1-5 jam
-                    
-                    // Tentukan operator acak dari 3 operator yang ada
-                    $randomOp = $operators[array_rand($operators)]->id;
+            for ($k = 1; $k <= $jumlahLog; $k++) {
+                // Pilih mesin acak dari database
+                $mesin = \App\Models\Machine::inRandomOrder()->first()->nama_mesin;
+                $durasi = rand(1, 5); // 1-5 jam
 
-                    JobSheet::create([
-                        'spk_id' => $spk->id,
-                        'operator_id' => $randomOp,
-                        'tanggal' => Carbon::now()->subDays(rand(1, 30)),
-                        'jenis_pekerjaan' => $mesin,
-                        'jam_mulai' => '08:00:00',
-                        'jam_selesai' => sprintf('%02d:00:00', 8 + $durasi),
-                        'total_jam' => (float)$durasi,
-                        'keterangan' => 'Pengerjaan tahap ' . $k,
-                    ]);
-                }
+                // Tentukan operator acak dari 3 operator yang ada
+                $randomOp = $operators[array_rand($operators)]->id;
+
+                // Pilih item SPK secara acak untuk dihubungkan ke jobsheet
+                $randomItem = $spkItems[array_rand($spkItems)];
+
+                JobSheet::create([
+                    'spk_id' => $spk->id,
+                    'spk_item_id' => $randomItem->id, // Hubungkan ke item spesifik
+                    'operator_id' => $randomOp,
+                    'tanggal' => Carbon::now()->subDays(rand(1, 30)),
+                    'jenis_pekerjaan' => $mesin,
+                    'jam_mulai' => '08:00:00',
+                    'jam_selesai' => sprintf('%02d:00:00', 8 + $durasi),
+                    'total_jam' => (float) $durasi,
+                    'keterangan' => 'Pengerjaan ' . $randomItem->nama_barang . ' - tahap ' . $k,
+                ]);
             }
         }
     }

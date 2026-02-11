@@ -11,16 +11,7 @@ class JobSheet extends Model
 
     protected $guarded = ['id'];
 
-    // KONFIGURASI TARIF MESIN (Bisa diubah di sini)
-    public const TARIF_MESIN = [
-        'Milling' => 120000,
-        'Bubut Kecil' => 120000,
-        'Bubut Besar' => 250000,
-        'Grinding' => 250000,
-        'Las' => 200000,
-        'Metal Spray' => 150000,
-        'Sand Blasting / Pengecatan' => 200000,
-    ];
+    // KONFIGURASI TARIF MESIN sekarang disimpan di database (tabel machines)
 
     // Relasi ke SPK
     public function spk()
@@ -34,10 +25,24 @@ class JobSheet extends Model
         return $this->belongsTo(User::class, 'operator_id');
     }
 
+    // Relasi ke Machine
+    public function machine()
+    {
+        return $this->belongsTo(Machine::class, 'jenis_pekerjaan', 'nama_mesin');
+    }
+
+    // Relasi ke SPK Item
+    public function spkItem()
+    {
+        return $this->belongsTo(SpkItem::class, 'spk_item_id');
+    }
+
     // Attribute Virtual: Menghitung Biaya (Total Jam * Tarif)
     public function getBiayaAttribute()
     {
-        $tarif = self::TARIF_MESIN[$this->jenis_pekerjaan] ?? 0;
+        // Ambil tarif dari database
+        $machine = Machine::where('nama_mesin', $this->jenis_pekerjaan)->first();
+        $tarif = $machine ? $machine->tarif : 0;
         return $tarif * $this->total_jam;
     }
 }

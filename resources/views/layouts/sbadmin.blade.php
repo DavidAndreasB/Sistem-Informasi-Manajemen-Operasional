@@ -7,10 +7,12 @@
     <title>{{ config('app.name', 'Venus Tekindo') }}</title>
 
     <link href="{{ asset('sbadmin2/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
 
     <link href="{{ asset('sbadmin2/css/sb-admin-2.min.css') }}" rel="stylesheet">
-    
+
     <link href="{{ asset('sbadmin2/vendor/datatables/dataTables.bootstrap4.min.css') }}" rel="stylesheet">
 </head>
 
@@ -43,20 +45,36 @@
             </div>
 
             @if(auth()->user() && auth()->user()->isSuperAdmin())
-            <li class="nav-item {{ request()->routeIs('user.*') || request()->routeIs('register') ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('user.index') }}">
-                    <i class="fas fa-fw fa-users"></i>
-                    <span>Manajemen User</span>
-                </a>
-            </li>
+                <li class="nav-item {{ request()->routeIs('user.*') || request()->routeIs('register') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('user.index') }}">
+                        <i class="fas fa-fw fa-users"></i>
+                        <span>Manajemen User</span>
+                    </a>
+                </li>
 
-            {{-- MENU SIMULASI --}}
-            <li class="nav-item {{ request()->routeIs('simulasi.*') ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('simulasi.index') }}">
-                    <i class="fas fa-fw fa-calculator"></i>
-                    <span>Simulasi Harga</span>
-                </a>
-            </li>
+                {{-- MENU SIMULASI --}}
+                <li class="nav-item {{ request()->routeIs('simulasi.*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('simulasi.index') }}">
+                        <i class="fas fa-fw fa-calculator"></i>
+                        <span>Simulasi Harga</span>
+                    </a>
+                </li>
+
+                {{-- MENU MESIN --}}
+                <li class="nav-item {{ request()->routeIs('machines.*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('machines.index') }}">
+                        <i class="fas fa-fw fa-cogs"></i>
+                        <span>Mesin</span>
+                    </a>
+                </li>
+
+                {{-- MENU CLIENT --}}
+                <li class="nav-item {{ request()->routeIs('clients.*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('clients.index') }}">
+                        <i class="fas fa-fw fa-building"></i>
+                        <span>Client</span>
+                    </a>
+                </li>
             @endif
 
             <li class="nav-item {{ request()->routeIs('spk.*') ? 'active' : '' }}">
@@ -65,7 +83,7 @@
                     <span>SPK</span>
                 </a>
             </li>
-            
+
             <li class="nav-item {{ request()->routeIs('jobsheet.*') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ route('jobsheet.index') }}">
                     <i class="fas fa-fw fa-clipboard-list"></i>
@@ -125,7 +143,7 @@
 
                 </nav>
                 @yield('content')
-                </div>
+            </div>
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
                     <div class="copyright text-center my-auto">
@@ -133,8 +151,8 @@
                     </div>
                 </div>
             </footer>
-            </div>
         </div>
+    </div>
     <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
     </a>
@@ -152,7 +170,7 @@
                 <div class="modal-body">Pilih "Logout" di bawah jika Anda ingin mengakhiri sesi ini.</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Batal</button>
-                    
+
                     {{-- Form Logout --}}
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
@@ -174,7 +192,7 @@
     <script src="{{ asset('sbadmin2/vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             if ($('#dataTable').length) {
                 $('#dataTable').DataTable();
             }
