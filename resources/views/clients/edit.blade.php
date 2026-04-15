@@ -32,7 +32,7 @@
                                 <input type="text" class="form-control @error('nama_lengkap') is-invalid @enderror"
                                     id="nama_lengkap" name="nama_lengkap"
                                     value="{{ old('nama_lengkap', $client->nama_lengkap) }}"
-                                    placeholder="Contoh: PT. Pantai Mas" required>
+                                    placeholder="Contoh: PT. Maju Bersama" required>
                                 @error('nama_lengkap')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

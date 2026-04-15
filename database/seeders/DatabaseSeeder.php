@@ -65,10 +65,10 @@ class DatabaseSeeder extends Seeder
         // ==============================================================
 
         $clients = [
-            ['nama_lengkap' => 'PT. Pantai Mas', 'inisial' => 'PT. PM'],
-            ['nama_lengkap' => 'CV. Surya Abadi', 'inisial' => 'CV. SA'],
-            ['nama_lengkap' => 'PT. Karya Mandiri', 'inisial' => 'PT. KM'],
-            ['nama_lengkap' => 'UD. Makmur Jaya', 'inisial' => 'UD. MJ'],
+            ['nama_lengkap' => 'PT. Maju Bersama', 'inisial' => 'PT. MB'],
+            ['nama_lengkap' => 'CV. Teknologi Nusantara', 'inisial' => 'CV. TN'],
+            ['nama_lengkap' => 'PT. Sinar Manufaktur', 'inisial' => 'PT. SM'],
+            ['nama_lengkap' => 'UD. Berkah Sejahtera', 'inisial' => 'UD. BS'],
         ];
 
         foreach ($clients as $client) {
@@ -140,12 +140,15 @@ class DatabaseSeeder extends Seeder
                 $item = SpkItem::create([
                     'spk_id' => $spk->id,
                     'nama_barang' => 'Part ' . fake()->word() . '-' . $j,
-                    'rincian' => fake()->sentence(10), // Kalimat acak
                     'quantity' => rand(1, 50),
                     'status_pengerjaan' => $statusPengerjaan,
                     'status_qc' => $statusQC,
                     'catatan_qc' => ($statusQC == 'Reject') ? 'Ukuran tidak presisi, tolong perbaiki.' : null,
                 ]);
+
+                // Attach 1-3 random machines to each item via pivot table
+                $randomMachines = \App\Models\Machine::inRandomOrder()->take(rand(1, 3))->pluck('id');
+                $item->machines()->attach($randomMachines);
 
                 $spkItems[] = $item; // Simpan item ke array
             }

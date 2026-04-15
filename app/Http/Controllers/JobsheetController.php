@@ -16,11 +16,11 @@ class JobsheetController extends Controller
     public function index()
     {
         // 1. Ambil SPK yang sedang berjalan
-        $activeSpks = Spk::where('status', 'Diproses')->latest()->get();
+        $activeSpks = Spk::with('client')->where('status', 'Diproses')->latest()->get();
 
         // 2. Ambil SEMUA SPK yang sudah selesai (Hapus take(20))
         // DataTables akan menangani pagination-nya di tampilan (frontend)
-        $finishedSpks = Spk::where('status', 'Selesai')->latest()->get();
+        $finishedSpks = Spk::with('client')->where('status', 'Selesai')->latest()->get();
 
         return view('jobsheet.index', compact('activeSpks', 'finishedSpks'));
     }

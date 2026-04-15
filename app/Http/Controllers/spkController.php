@@ -113,7 +113,7 @@ class SpkController extends Controller implements HasMiddleware
 
     public function show(Spk $spk)
     {
-        $spk->load(['items', 'creator']);
+        $spk->load(['items.machines', 'creator']);
         return view('spk.show', compact('spk'));
     }
 
@@ -202,7 +202,7 @@ class SpkController extends Controller implements HasMiddleware
     public function printPdf(Spk $spk)
     {
         // Load relasi yang diperlukan
-        $spk->load(['items', 'creator']);
+        $spk->load(['items.machines', 'creator']);
 
         // Load view PDF
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('spk.pdf', compact('spk'));

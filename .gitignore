@@ -22,3 +22,14 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Debug & test scripts
+check_*.php
+test_*.php
+public/debug-*.php
+
+# Compiled views cache
+storage/framework/views/*.php
+
+# IDE & Tools
+.gemini/

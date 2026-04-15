@@ -26,7 +26,7 @@
                             @foreach ($activeSpks as $item)
                                 <tr>
                                     <td class="font-weight-bold text-primary">{{ $item->no_spk }}</td>
-                                    <td>{{ $item->nama_pemesan }}</td>
+                                    <td>{{ $item->client_inisial }}</td>
                                     <td>{{ $item->judul_proyek }}</td>
                                     <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}</td>
                                     <td class="text-center">
@@ -69,7 +69,7 @@
                             @foreach ($finishedSpks as $item)
                                 <tr class="text-muted">
                                     <td>{{ $item->no_spk }}</td>
-                                    <td>{{ $item->nama_pemesan }}</td>
+                                    <td>{{ $item->client_inisial }}</td>
                                     <td>{{ $item->judul_proyek }}</td>
                                     {{-- data-sort digunakan agar sorting tanggal akurat secara sistem --}}
                                     <td data-sort="{{ $item->updated_at }}">

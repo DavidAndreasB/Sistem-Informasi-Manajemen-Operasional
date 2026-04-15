@@ -212,7 +212,17 @@
                     <tr>
                         <td class="text-center">{{ $loop->iteration }}</td>
                         <td class="bold">{{ $item->nama_barang }}</td>
-                        <td>{!! nl2br(e($item->rincian)) !!}</td>
+                        <td>
+                            @if($item->machines->count() > 0)
+                                @foreach($item->machines as $machine)
+                                    <div style="margin-bottom: 3px;">• {{ $machine->nama_mesin }}</div>
+                                @endforeach
+                            @elseif($item->rincian)
+                                {!! nl2br(e($item->rincian)) !!}
+                            @else
+                                <em>-</em>
+                            @endif
+                        </td>
                         <td class="text-center bold">{{ $item->quantity }}</td>
                     </tr>
                 @empty

@@ -76,15 +76,22 @@
                                     <td class="text-center align-middle">{{ $loop->iteration }}</td>
                                     <td class="font-weight-bold align-middle">{{ $item->nama_barang }}</td>
                                     <td class="align-middle">
-                                        @php
-                                            $rincianLines = array_filter(explode("\n", $item->rincian));
-                                        @endphp
-
-                                        @foreach($rincianLines as $rincian)
-                                            <div class="mb-1">
-                                                • {{ trim($rincian) }}
-                                            </div>
-                                        @endforeach
+                                        @if($item->machines->count() > 0)
+                                            @foreach($item->machines as $machine)
+                                                <div class="mb-1">• {{ $machine->nama_mesin }}</div>
+                                            @endforeach
+                                        @elseif($item->rincian)
+                                            @php
+                                                $rincianLines = array_filter(explode("\n", $item->rincian));
+                                            @endphp
+                                            @foreach($rincianLines as $rincian)
+                                                <div class="mb-1">
+                                                    • {{ trim($rincian) }}
+                                                </div>
+                                            @endforeach
+                                        @else
+                                            <em class="text-muted">-</em>
+                                        @endif
                                     </td>
                                     <td class="text-center font-weight-bold align-middle">{{ $item->quantity }}</td>
 
