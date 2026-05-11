@@ -8,24 +8,24 @@ Aplikasi web **full-stack** untuk manajemen operasional workshop manufaktur, dib
 
 ## ✨ Fitur Utama
 
-### 📋 Manajemen SPK (Surat Perintah Kerja)
+###  Manajemen SPK (Surat Perintah Kerja)
 - CRUD SPK lengkap dengan nomor otomatis (format: `VT.DD.MM.YY.XXX`)
 - Multi-item per SPK dengan tracking status per item
 - Asosiasi mesin ke setiap item kerja (pivot table)
 - Export SPK ke PDF (menggunakan DomPDF)
 
-### 📝 Jobsheet & Pencatatan Kerja
+###  Jobsheet & Pencatatan Kerja
 - Pencatatan aktivitas pengerjaan per operator per mesin
 - Tracking durasi kerja (jam mulai - selesai) dengan validasi
 - Riwayat pekerjaan terhubung ke SPK item spesifik
 - Kalkulasi total jam kerja otomatis
 
-### ✅ Quality Control (QC)
+###  Quality Control (QC)
 - Sistem approval per item (Pending → OK / Reject)
 - Catatan QC untuk item yang di-reject
 - Status pengerjaan bertingkat (Proses → Selesai → QC)
 
-### 💰 Simulasi Harga
+###  Simulasi Harga
 - Kalkulator harga berdasarkan tarif mesin dari database
 - Export hasil simulasi ke PDF untuk penawaran harga
 
@@ -36,7 +36,7 @@ Aplikasi web **full-stack** untuk manajemen operasional workshop manufaktur, dib
 | **Quality Control** | Review & approve/reject item, lihat SPK & jobsheet |
 | **Operator** | Input jobsheet, update status pengerjaan item |
 
-### 🏗️ Master Data
+### Master Data
 - **Mesin**: CRUD mesin dengan tarif per jam (Milling, Bubut, Grinding, Las, dll.)
 - **Client**: Manajemen data pelanggan dengan inisial
 
@@ -46,7 +46,7 @@ Aplikasi web **full-stack** untuk manajemen operasional workshop manufaktur, dib
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer | Teknologi |
 |-------|-----------|
@@ -60,7 +60,7 @@ Aplikasi web **full-stack** untuk manajemen operasional workshop manufaktur, dib
 
 ---
 
-## 📐 Arsitektur & Database
+##  Arsitektur & Database
 
 ### Entity Relationship (Ringkas)
 
@@ -104,7 +104,7 @@ database/
 
 ---
 
-## 🚀 Instalasi & Setup
+##  Instalasi & Setup
 
 ### Prasyarat
 - PHP 8.2+
@@ -146,13 +146,14 @@ php artisan serve
 | Quality Control | `qc_user` | `password` |
 | Operator | `operator_1` | `password` |
 
-> ⚠️ **Catatan:** Password di atas hanya untuk development. Selalu ganti password di environment production.
+>
 
 ---
 
 ## 📸 Screenshots
 
-> *(Coming soon — akan ditambahkan screenshot dashboard, SPK, dan jobsheet)*
+> <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/909568a6-89c5-4554-a6a1-df131539ab47" />
+
 
 ---
 
